@@ -184,5 +184,15 @@
         "source": "smart_contract_assistant",
         "content": "The security audit for your StakingContract is complete. Here are the key findings:\n\n- No critical issues were identified.\n- There is one high severity issue related to reward manipulation.\n- Two medium severity issues were found, including lack of input validation and centralization risks.\n- Three low severity issues and several gas optimization recommendations were also identified.\n\nWould you like to proceed with fixing these issues?",
         "metadata": {}
+    },
+    {
+        "id": "f7b1694c-87ff-44c1-93a8-14e8825f550b",
+        "timestamp": "2024-12-20T13:29:27.375502Z",
+        "role": "user",
+        "source": "web_client",
+        "content": "show me recomendations",
+        "metadata": {
+            "component_id": "Hero1734700881"
+        }
     }
 ]
