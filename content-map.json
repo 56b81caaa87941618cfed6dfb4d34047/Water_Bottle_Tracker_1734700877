@@ -1,0 +1,64 @@
+{
+    "name": "example",
+    "prefix": "%#PLACEHOLDER",
+    "placeholderMappings": {
+        "Blank": [],
+        "Header": [
+            "APPLICATION_NAME"
+        ],
+        "Hero": [
+            "HERO_HEADING_TEXT",
+            "HERO_SUBHEADING_TEXT"
+        ],
+        "Footer": [
+            "APPLICATION_NAME",
+            "FOOTER_TEXT"
+        ],
+        "Newsletter": [
+            "NEWSLETTER_HEADING_TEXT",
+            "NEWSLETTER_SUBHEADING_TEXT",
+            "NEWSLETTER_BUTTON_TEXT"
+        ],
+        "About": [
+            "ABOUT_MISSION_STATMENT",
+            "ABOUT_VISION_STATEMENT",
+            "ABOUT_VALUES_STATEMENT"
+        ],
+        "Contact": [
+            "CONTACT_HEADER_TEXT",
+            "CONTACT_SUBHEADER_TEXT"
+        ],
+        "FAQ": [
+            "FAQ_HEADER_TEXT",
+            "FAQ_SUBHEADER_TEXT",
+            "FAQ_QUESTION_01_TEXT",
+            "FAQ_ANSWER_01_TEXT",
+            "FAQ_QUESTION_02_TEXT",
+            "FAQ_ANSWER_02_TEXT",
+            "FAQ_QUESTION_03_TEXT",
+            "FAQ_ANSWER_03_TEXT"
+        ]
+    },
+    "placeholders": {
+        "APPLICATION_NAME": "AquaPure",
+        "HERO_HEADING_TEXT": "Quench Your Thirst, Anytime, Anywhere",
+        "HERO_SUBHEADING_TEXT": "Pure, refreshing water delivered to your doorstep with just a tap",
+        "FOOTER_TEXT": "\u00a9 2023 AquaPure. Refreshing lives, one bottle at a time.",
+        "NEWSLETTER_HEADING_TEXT": "Stay Hydrated, Stay Informed",
+        "NEWSLETTER_SUBHEADING_TEXT": "Sign up for our newsletter to receive hydration tips and exclusive offers",
+        "NEWSLETTER_BUTTON_TEXT": "Dive In",
+        "ABOUT_MISSION_STATMENT": "To provide convenient access to pure, refreshing water for everyone, everywhere",
+        "ABOUT_VISION_STATEMENT": "A world where staying hydrated is effortless and eco-friendly",
+        "ABOUT_VALUES_STATEMENT": "Quality, Convenience, Sustainability, and Customer Satisfaction",
+        "CONTACT_HEADER_TEXT": "Let's Connect",
+        "CONTACT_SUBHEADER_TEXT": "Have a question or feedback? We're all ears!",
+        "FAQ_QUESTION_01_TEXT": "How quickly can I get my water delivered?",
+        "FAQ_ANSWER_01_TEXT": "We offer same-day delivery for orders placed before 2 PM in most areas.",
+        "FAQ_QUESTION_02_TEXT": "What types of water do you offer?",
+        "FAQ_ANSWER_02_TEXT": "We offer spring water, purified water, and alkaline water in various sizes.",
+        "FAQ_QUESTION_03_TEXT": "Is your packaging eco-friendly?",
+        "FAQ_ANSWER_03_TEXT": "Yes, we use 100% recycled plastic bottles and offer a bottle return program.",
+        "FAQ_HEADER_TEXT": "Frequently Asked Questions",
+        "FAQ_SUBHEADER_TEXT": "Everything you need to know about AquaPure"
+    }
+}
