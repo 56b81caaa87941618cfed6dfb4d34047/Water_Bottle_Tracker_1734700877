@@ -82,5 +82,15 @@
         "source": "smart_contract_assistant",
         "content": "The StakingContract has been generated. Would you like to deploy it now?",
         "metadata": {}
+    },
+    {
+        "id": "8950a943-7ffe-43ca-af0f-a2a1cda9d676",
+        "timestamp": "2024-12-20T13:23:40.335272Z",
+        "role": "user",
+        "source": "web_client",
+        "content": "yes to holesky",
+        "metadata": {
+            "component_id": "Hero1734700881"
+        }
     }
 ]
