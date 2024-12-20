@@ -1,167 +1,133 @@
 
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.20;
 
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import "@openzeppelin/contracts/security/Pausable.sol";
-import "@openzeppelin/contracts/access/Ownable2Step.sol";
-import "@openzeppelin/contracts/utils/math/Math.sol";
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
-contract StakingContract is Ownable2Step, Pausable {
+contract NodeOps {
     using SafeERC20 for IERC20;
 
-    IERC20 public stakingToken;
-    IERC20 public rewardToken;
+    mapping(bytes32 => address) public _operators;
+    address public _tokenAddress;
+    bytes32[] public _ed25519Keys;
+    uint248 public _minRequiredSignatures;
+    uint248 public _nonce;
+    uint248 public _cancellationPeriod;
 
-    // Staking token decimals
-    uint256 public constant STAKING_TOKEN_DECIMALS = 18;
-
-    // Reward rate (tokens per second)
-    uint256 public rewardRate = 1e15; // 0.001 tokens per second
-
-    // Timestamp for the last reward rate update
-    uint256 public lastUpdateTime;
-
-    // Accumulated rewards per token stored
-    uint256 public rewardPerTokenStored;
-
-    // Total staked tokens
-    uint256 public totalSupply;
-
-    // Mapping of user address to staked amount
-    mapping(address => uint256) public stakedBalance;
-
-    // Mapping of user address to rewards per token paid
-    mapping(address => uint256) public userRewardPerTokenPaid;
-
-    // Mapping of user address to rewards
-    mapping(address => uint256) public rewards;
-
-    // Time delay for parameter changes
-    uint256 public constant PARAMETER_CHANGE_DELAY = 2 days;
-
-    // Pending parameter changes
-    uint256 public pendingRewardRate;
-    uint256 public pendingRewardRateTimestamp;
-    address public pendingStakingToken;
-    uint256 public pendingStakingTokenTimestamp;
-    address public pendingRewardToken;
-    uint256 public pendingRewardTokenTimestamp;
-
-    event Staked(address indexed user, uint256 amount);
-    event Withdrawn(address indexed user, uint256 amount);
-    event RewardClaimed(address indexed user, uint256 reward);
-    event RewardRateUpdated(uint256 newRate);
-    event StakingTokenUpdated(address newToken);
-    event RewardTokenUpdated(address newToken);
-
-    constructor() Ownable() {
-        // Initialize with placeholder addresses. These should be changed after deployment.
-        stakingToken = IERC20(address(0x1234567890123456789012345678901234567890));
-        rewardToken = IERC20(address(0x0987654321098765432109876543210987654321));
-        lastUpdateTime = block.timestamp;
+    struct UnstakeRequest {
+        uint256 timestamp;
     }
 
-    modifier updateReward(address account) {
-        rewardPerTokenStored = rewardPerToken();
-        lastUpdateTime = block.timestamp;
-        if (account != address(0)) {
-            rewards[account] = earned(account);
-            userRewardPerTokenPaid[account] = rewardPerTokenStored;
+    mapping(address => UnstakeRequest) public unstakeRequests;
+
+    event NodeRegistered(bytes32 nodePublicKey, address operator);
+    event NodeUnregistered(bytes32 nodePublicKey);
+    event Staked(bytes32[] nodes, address staker, uint248 amount);
+    event UnstakeInitiated(address staker);
+    event UnstakeCompleted(uint248 amount, address staker);
+    event UnstakeCancelled(address staker);
+    event Nominate(bytes32[] nodes, address nominator);
+    event UnstakeRequestProcessed(address staker);
+
+    error NotValidNodeOperator();
+    error ValueExceedsUint248Limit();
+    error InvalidNonce();
+    error InvalidSignature();
+    error NotEnoughSignatures();
+    error InvalidAmount();
+    error ExistingUnstakeRequest();
+    error NoUnstakeRequestFound();
+    error CancellationPeriodExpired();
+    error CancellationPeriodNotPassed();
+
+    constructor(
+        address tokenAddress,
+        bytes32[] memory ed25519Keys,
+        uint248 minRequiredSignatures,
+        uint248 cancellationPeriod
+    ) {
+        _tokenAddress = tokenAddress;
+        _ed25519Keys = ed25519Keys;
+        _minRequiredSignatures = minRequiredSignatures;
+        _nonce = 0;
+        _cancellationPeriod = cancellationPeriod;
+    }
+
+    function getCancellationPeriod() external view returns (uint248) {
+        return _cancellationPeriod;
+    }
+
+    function setCancellationPeriod(uint248 newPeriod) external {
+        _cancellationPeriod = newPeriod;
+    }
+
+    function registerNode(bytes32 nodePublicKey, address operator) public {
+        _operators[nodePublicKey] = operator;
+        emit NodeRegistered(nodePublicKey, operator);
+    }
+
+    function unregisterNode(bytes32 nodePublicKey) public {
+        if (msg.sender != _operators[nodePublicKey]) {
+            revert NotValidNodeOperator();
         }
-        _;
+
+        delete _operators[nodePublicKey];
+
+        emit NodeUnregistered(nodePublicKey);
     }
 
-    function setStakingToken(address _stakingToken) external onlyOwner {
-        require(_stakingToken != address(0), "Invalid staking token address");
-        pendingStakingToken = _stakingToken;
-        pendingStakingTokenTimestamp = block.timestamp + PARAMETER_CHANGE_DELAY;
+    function stake(bytes32[] calldata nodes, uint248 amount) external {
+        if (amount > type(uint248).max) revert ValueExceedsUint248Limit();
+
+        IERC20(_tokenAddress).safeTransferFrom(msg.sender, address(this), amount);
+
+        emit Staked(nodes, msg.sender, amount);
     }
 
-    function setRewardToken(address _rewardToken) external onlyOwner {
-        require(_rewardToken != address(0), "Invalid reward token address");
-        pendingRewardToken = _rewardToken;
-        pendingRewardTokenTimestamp = block.timestamp + PARAMETER_CHANGE_DELAY;
+    function nominate(bytes32[] calldata nodes) external {
+        emit Nominate(nodes, msg.sender);
     }
 
-    function setRewardRate(uint256 _rewardRate) external onlyOwner {
-        require(_rewardRate > 0 && _rewardRate <= 1e18, "Invalid reward rate");
-        pendingRewardRate = _rewardRate;
-        pendingRewardRateTimestamp = block.timestamp + PARAMETER_CHANGE_DELAY;
-    }
-
-    function applyPendingChanges() external onlyOwner {
-        if (pendingRewardRateTimestamp != 0 && block.timestamp >= pendingRewardRateTimestamp) {
-            rewardRate = pendingRewardRate;
-            pendingRewardRate = 0;
-            pendingRewardRateTimestamp = 0;
-            emit RewardRateUpdated(rewardRate);
+    function unstake() external {
+        if (unstakeRequests[msg.sender].timestamp > 0) {
+            revert ExistingUnstakeRequest();
         }
-        if (pendingStakingTokenTimestamp != 0 && block.timestamp >= pendingStakingTokenTimestamp) {
-            stakingToken = IERC20(pendingStakingToken);
-            pendingStakingToken = address(0);
-            pendingStakingTokenTimestamp = 0;
-            emit StakingTokenUpdated(address(stakingToken));
+        unstakeRequests[msg.sender] = UnstakeRequest({timestamp: block.timestamp});
+
+        emit UnstakeInitiated(msg.sender);
+    }
+
+    function cancelUnstake() external {
+        UnstakeRequest storage request = unstakeRequests[msg.sender];
+        if (request.timestamp == 0) revert NoUnstakeRequestFound();
+        if (block.timestamp > request.timestamp + _cancellationPeriod) revert CancellationPeriodExpired();
+        delete unstakeRequests[msg.sender];
+
+        emit UnstakeCancelled(msg.sender);
+    }
+
+    function requestProcessUnstake() external {
+        UnstakeRequest storage request = unstakeRequests[msg.sender];
+        if (request.timestamp == 0) revert NoUnstakeRequestFound();
+        if (block.timestamp <= request.timestamp + _cancellationPeriod) revert CancellationPeriodNotPassed();
+
+        emit UnstakeRequestProcessed(msg.sender);
+    }
+
+    function processUnstake(address staker, uint248 amount, bytes32[] calldata ed25519signatures) external {
+        if (ed25519signatures.length < _minRequiredSignatures) {
+            revert NotEnoughSignatures();
         }
-        if (pendingRewardTokenTimestamp != 0 && block.timestamp >= pendingRewardTokenTimestamp) {
-            rewardToken = IERC20(pendingRewardToken);
-            pendingRewardToken = address(0);
-            pendingRewardTokenTimestamp = 0;
-            emit RewardTokenUpdated(address(rewardToken));
+
+        UnstakeRequest storage request = unstakeRequests[staker];
+        if (block.timestamp <= request.timestamp + _cancellationPeriod) {
+            revert CancellationPeriodNotPassed();
         }
-    }
 
-    function stake(uint256 _amount) external updateReward(msg.sender) whenNotPaused {
-        require(_amount > 0, "Cannot stake 0 tokens");
-        totalSupply += _amount;
-        stakedBalance[msg.sender] += _amount;
-        stakingToken.safeTransferFrom(msg.sender, address(this), _amount);
-        emit Staked(msg.sender, _amount);
-    }
+        IERC20(_tokenAddress).safeTransfer(staker, amount);
+        emit UnstakeCompleted(amount, staker);
 
-    function withdraw(uint256 _amount) external updateReward(msg.sender) whenNotPaused {
-        require(_amount > 0, "Cannot withdraw 0 tokens");
-        require(stakedBalance[msg.sender] >= _amount, "Insufficient staked balance");
-        totalSupply -= _amount;
-        stakedBalance[msg.sender] -= _amount;
-        stakingToken.safeTransfer(msg.sender, _amount);
-        emit Withdrawn(msg.sender, _amount);
-    }
-
-    function claimReward() external updateReward(msg.sender) whenNotPaused {
-        uint256 reward = rewards[msg.sender];
-        if (reward > 0) {
-            rewards[msg.sender] = 0;
-            rewardToken.safeTransfer(msg.sender, reward);
-            emit RewardClaimed(msg.sender, reward);
-        }
-    }
-
-    function rewardPerToken() public view returns (uint256) {
-        if (totalSupply == 0) {
-            return rewardPerTokenStored;
-        }
-        return rewardPerTokenStored + (((block.timestamp - lastUpdateTime) * rewardRate * 1e18) / totalSupply);
-    }
-
-    function earned(address account) public view returns (uint256) {
-        return ((stakedBalance[account] * (rewardPerToken() - userRewardPerTokenPaid[account])) / 1e18) + rewards[account];
-    }
-
-    function getStakedBalance(address _user) external view returns (uint256) {
-        return stakedBalance[_user];
-    }
-
-    function getTotalSupply() external view returns (uint256) {
-        return totalSupply;
-    }
-
-    function pauseContract() external onlyOwner {
-        _pause();
-    }
-
-    function unpauseContract() external onlyOwner {
-        _unpause();
+        _nonce++;
     }
 }
