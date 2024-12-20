@@ -158,5 +158,13 @@
             },
             "type": "function"
         }
+    },
+    {
+        "id": "13437f5c-27dd-4092-893a-6cf6b9d1817e",
+        "timestamp": "2024-12-20T13:27:50.591487Z",
+        "role": "assistant",
+        "source": "tool:AuditSmartContract",
+        "content": "Starting the security audit of your smart contract...",
+        "metadata": {}
     }
 ]
