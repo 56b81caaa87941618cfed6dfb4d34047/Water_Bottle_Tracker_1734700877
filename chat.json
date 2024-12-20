@@ -41,5 +41,20 @@
         "metadata": {
             "tool_call_id": "call_gWQgXNNTdTM76kJaKik8g109"
         }
+    },
+    {
+        "id": "3d11515f-c2a7-465f-8c5a-aef5d3fa38d5",
+        "timestamp": "2024-12-20T13:21:55.416563Z",
+        "role": "tool_call",
+        "source": "smart_contract_assistant",
+        "content": null,
+        "metadata": {
+            "id": "call_MzSsPl7MC3ORQBMqwnLTX7vS",
+            "function": {
+                "arguments": "{\"contract_id\":\"StakingContract\",\"description\":\"Create a smart contract for staking tokens. Users should be able to stake their tokens, and the contract will keep track of how many tokens have been staked by each user. Users should be rewarded based on the amount of time their tokens have been staked.\",\"acknowledgement_message\":\"Generating the staking smart contract...\"}",
+                "name": "WriteOrEditSmartContract"
+            },
+            "type": "function"
+        }
     }
 ]
