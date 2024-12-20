@@ -184,5 +184,23 @@
         "source": "smart_contract_assistant",
         "content": "The security audit for your StakingContract is complete. Here are the key findings:\n\n- No critical issues were identified.\n- There is one high severity issue related to reward manipulation.\n- Two medium severity issues were found, including lack of input validation and centralization risks.\n- Three low severity issues and several gas optimization recommendations were also identified.\n\nWould you like to proceed with fixing these issues?",
         "metadata": {}
+    },
+    {
+        "id": "f7b1694c-87ff-44c1-93a8-14e8825f550b",
+        "timestamp": "2024-12-20T13:29:27.375502Z",
+        "role": "user",
+        "source": "web_client",
+        "content": "show me recomendations",
+        "metadata": {
+            "component_id": "Hero1734700881"
+        }
+    },
+    {
+        "id": "1be66d8f-298a-451d-9767-16d26883c39f",
+        "timestamp": "2024-12-20T13:29:38.865371Z",
+        "role": "assistant",
+        "source": "smart_contract_assistant",
+        "content": "Here are the key recommendations for your StakingContract:\n\n1. **Reward Manipulation:**\n   - Use cumulative reward calculation methods to mitigate timestamp manipulation:\n```solidity\nuint256 public rewardPerTokenStored;\nmapping(address => uint256) public userRewardPerTokenPaid;\nmapping(address => uint256) public rewards;\n\nfunction updateReward(address account) internal {\n    rewardPerTokenStored = rewardPerToken();\n    lastUpdateTime = lastTimeRewardApplicable();\n    if (account != address(0)) {\n        rewards[account] = earned(account);\n        userRewardPerTokenPaid[account] = rewardPerTokenStored;\n    }\n}\n\nfunction rewardPerToken() public view returns (uint256) {\n    if (totalSupply() == 0) {\n        return rewardPerTokenStored;\n    }\n    return rewardPerTokenStored.add(\n        lastTimeRewardApplicable().sub(lastUpdateTime).mul(rewardRate).mul(1e18).div(totalSupply())\n    );\n}\n\nfunction earned(address account) public view returns (uint256) {\n    return balanceOf(account)\n        .mul(rewardPerToken().sub(userRewardPerTokenPaid[account]))\n        .div(1e18)\n        .add(rewards[account]);\n}\n```\n\n2. **Input Validation:**\n   - Check for zero addresses and ensure reward rates are within acceptable limits:\n```solidity\nuint256 public constant MAX_REWARD_RATE = 1e18;\n\nfunction setStakingToken(address _stakingToken) external onlyOwner {\n    require(_stakingToken != address(0), \"Invalid token address\");\n    stakingToken = IERC20(_stakingToken);\n    emit StakingTokenChanged(_stakingToken);\n}\n\nfunction setRewardToken(address _rewardToken) external onlyOwner {\n    require(_rewardToken != address(0), \"Invalid token address\");\n    rewardToken = IERC20(_rewardToken);\n    emit RewardTokenChanged(_rewardToken);\n}\n\nfunction setRewardRate(uint256 _rewardRate) external onlyOwner {\n    require(_rewardRate <= MAX_REWARD_RATE, \"Reward rate too high\");\n    rewardRate = _rewardRate;\n    emit RewardRateChanged(_rewardRate);\n}\n```\n\n3. **Centralization Risks:**\n   - Implement time locks for sensitive operations:\n```solidity\nuint256 public constant TIMELOCK_PERIOD = 2 days;\n\nmapping(bytes32 => uint256) public pendingChanges;\n\nfunction proposeChange(bytes32 _operation, bytes32 _params) external onlyOwner {\n    pendingChanges[_operation] = block.timestamp + TIMELOCK_PERIOD;\n    emit ChangeProposed(_operation, _params);\n}\n\nfunction executeChange(bytes32 _operation, bytes32 _params) external onlyOwner {\n    require(pendingChanges[_operation] <= block.timestamp, \"Change not ready\");\n    delete pendingChanges[_operation];\n    emit ChangeExecuted(_operation, _params);\n}\n```\n\n4. **Gas Optimizations:**\n   - Use `uint256` for constants and avoid redundant operations:\n```solidity\nuint256 public constant STAKING_TOKEN_DECIMALS = 18;\n\nfunction calculateReward(address _user) public view returns (uint256) {\n    uint256 stakedAmount = stakedBalance[_user];\n    if (stakedAmount == 0) {\n        return 0;\n    }\n\n    uint256 duration;\n    unchecked {\n        duration = block.timestamp - lastStakeOrClaimTime[_user];\n    }\n    return (stakedAmount * duration * rewardRate) / (10**STAKING_TOKEN_DECIMALS);\n}\n```\n\nThese changes will improve security, reduce centralization risks, and optimize gas usage. Would you like me to implement these recommendations?",
+        "metadata": {}
     }
 ]
