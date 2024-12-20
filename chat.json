@@ -107,5 +107,13 @@
             },
             "type": "function"
         }
+    },
+    {
+        "id": "6a5855b7-7fa1-4d0d-991e-c5bd24491b37",
+        "timestamp": "2024-12-20T13:23:42.982279Z",
+        "role": "assistant",
+        "source": "tool:DeployAndGenerateFrontend",
+        "content": "Deploying the StakingContract to Holesky...",
+        "metadata": {}
     }
 ]
