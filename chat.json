@@ -74,5 +74,13 @@
         "metadata": {
             "tool_call_id": "call_MzSsPl7MC3ORQBMqwnLTX7vS"
         }
+    },
+    {
+        "id": "5cc3a0f3-1361-4000-924c-657755cf7ef3",
+        "timestamp": "2024-12-20T13:22:16.920373Z",
+        "role": "assistant",
+        "source": "smart_contract_assistant",
+        "content": "The StakingContract has been generated. Would you like to deploy it now?",
+        "metadata": {}
     }
 ]
