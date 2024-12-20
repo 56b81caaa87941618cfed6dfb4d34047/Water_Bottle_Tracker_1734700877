@@ -115,5 +115,15 @@
         "source": "tool:DeployAndGenerateFrontend",
         "content": "Deploying the StakingContract to Holesky...",
         "metadata": {}
+    },
+    {
+        "id": "c7bc45c8-dcf8-416e-806e-7ba9436e5556",
+        "timestamp": "2024-12-20T13:24:12.370554Z",
+        "role": "tool_result",
+        "source": "DeployAndGenerateFrontend",
+        "content": "Success: deployed contract to 0x010aF01704e1E84f9d35401ecf136E923e2d497d on Holesky (Ethereum testnet)",
+        "metadata": {
+            "tool_call_id": "call_Puar4euFCgwoUDk1Ylm8vV8o"
+        }
     }
 ]
