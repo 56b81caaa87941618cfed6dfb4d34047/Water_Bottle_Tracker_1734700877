@@ -56,5 +56,13 @@
             },
             "type": "function"
         }
+    },
+    {
+        "id": "e11d1ee2-83e1-4982-a703-4b1d4b2c5bbb",
+        "timestamp": "2024-12-20T13:21:55.477773Z",
+        "role": "assistant",
+        "source": "tool:WriteOrEditSmartContract",
+        "content": "Generating the staking smart contract...",
+        "metadata": {}
     }
 ]
